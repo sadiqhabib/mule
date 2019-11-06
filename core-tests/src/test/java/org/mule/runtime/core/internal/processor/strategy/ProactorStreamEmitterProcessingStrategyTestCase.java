@@ -125,14 +125,26 @@ public class ProactorStreamEmitterProcessingStrategyTestCase extends AbstractPro
                                                         int maxConcurrency) {
     return new ProactorStreamEmitterProcessingStrategy(XS_BUFFER_SIZE,
                                                        2,
-                                                       () -> cpuLight,
-                                                       () -> cpuLight,
-                                                       () -> blocking,
-                                                       () -> cpuIntensive,
+                                                       () -> getCpuLight(),
+                                                       () -> getCpuLight(),
+                                                       () -> getBlocking(),
+                                                       () -> getCpuIntensive(),
                                                        CORES,
                                                        maxConcurrency,
                                                        true,
                                                        false);
+  }
+
+  private Scheduler getCpuIntensive() {
+    return cpuIntensive;
+  }
+
+  private Scheduler getBlocking() {
+    return blocking;
+  }
+
+  private Scheduler getCpuLight() {
+    return cpuLight;
   }
 
   @Override

@@ -56,7 +56,7 @@ public abstract class AbstractCompositePolicy<ParametersTransformer> {
       interceptors.add(next -> eventPub -> from(applyPolicy(policy, next, eventPub)));
     }
 
-    Policy lastPolicy = parameterizedPolicies.get(parameterizedPolicies.size() - 1);
+    Policy lastPolicy = getLastPolicy();
 
     ReactiveProcessor chainedPoliciesAndOperation = eventPub -> from(applyNextOperation(eventPub, lastPolicy));
     // Take processor publisher function itself and transform it by applying interceptor transformations onto it.
@@ -65,7 +65,11 @@ public abstract class AbstractCompositePolicy<ParametersTransformer> {
       chainedPoliciesAndOperation = interceptor.apply(chainedPoliciesAndOperation);
     }
 
-    return lastPolicy.getPolicyChain().getProcessingStrategy().onPipeline(chainedPoliciesAndOperation);
+    return chainedPoliciesAndOperation;
+  }
+
+  protected Policy getLastPolicy() {
+    return parameterizedPolicies.get(parameterizedPolicies.size() - 1);
   }
 
   /**
