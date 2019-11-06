@@ -113,7 +113,7 @@ public class CompositeSourcePolicy
 
       Flux<Either<SourcePolicyFailureResult, SourcePolicySuccessResult>> policyFlux =
           Flux.create(sinkRef)
-              .transform(getExecutionProcessor())
+              .transform(getLastPolicy().getPolicyChain().getProcessingStrategy().onPipeline(getExecutionProcessor()))
               .map(policiesResultEvent -> right(SourcePolicyFailureResult.class,
                                                 new SourcePolicySuccessResult(policiesResultEvent,
                                                                               resolveSuccessResponseParameters(policiesResultEvent),
