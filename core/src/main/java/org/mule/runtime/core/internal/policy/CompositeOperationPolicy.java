@@ -29,6 +29,7 @@ import org.mule.runtime.core.api.functional.Either;
 import org.mule.runtime.core.api.policy.OperationPolicyParametersTransformer;
 import org.mule.runtime.core.api.policy.Policy;
 import org.mule.runtime.core.api.processor.ReactiveProcessor;
+import org.mule.runtime.core.api.processor.strategy.ProcessingStrategy;
 import org.mule.runtime.core.api.util.concurrent.FunctionalReadWriteLock;
 import org.mule.runtime.core.internal.exception.MessagingException;
 import org.mule.runtime.core.internal.message.InternalEvent;
@@ -108,6 +109,14 @@ public class CompositeOperationPolicy
                                                         new RoundRobinFluxSinkSupplier<>(getRuntime().availableProcessors(),
                                                                                          factory));
         });
+  }
+
+  @Override
+  protected ReactiveProcessor getExecutionProcessor() {
+    ReactiveProcessor pipeline = super.getExecutionProcessor();
+    ProcessingStrategy processingStrategy = getLastPolicy().getPolicyChain().getProcessingStrategy();
+
+    return processingStrategy != null ? processingStrategy.onPipeline(pipeline) : pipeline;
   }
 
   private final class OperationWithPoliciesFluxObjectFactory implements Supplier<FluxSink<CoreEvent>> {

@@ -21,7 +21,6 @@ import org.mule.runtime.core.api.policy.Policy;
 import org.mule.runtime.core.api.policy.SourcePolicyParametersTransformer;
 import org.mule.runtime.core.api.processor.Processor;
 import org.mule.runtime.core.api.processor.ReactiveProcessor;
-import org.mule.runtime.core.api.processor.strategy.ProcessingStrategy;
 import org.mule.runtime.core.api.rx.Exceptions;
 import org.mule.runtime.core.internal.exception.MessagingException;
 import org.mule.runtime.core.internal.message.InternalEvent;
@@ -100,13 +99,13 @@ public class CompositeSourcePolicy
     this.resolver = ofNullable(resolver);
   }
 
-  @Override
-  protected ReactiveProcessor getExecutionProcessor() {
-    ReactiveProcessor pipeline = super.getExecutionProcessor();
-    ProcessingStrategy processingStrategy = getLastPolicy().getPolicyChain().getProcessingStrategy();
-
-    return processingStrategy != null ? processingStrategy.onPipeline(pipeline) : pipeline;
-  }
+  //@Override
+  //protected ReactiveProcessor getExecutionProcessor() {
+  //  ReactiveProcessor pipeline = super.getExecutionProcessor();
+  //  ProcessingStrategy processingStrategy = getLastPolicy().getPolicyChain().getProcessingStrategy();
+  //
+  //  return processingStrategy != null ? processingStrategy.onPipeline(pipeline) : pipeline;
+  //}
 
   private final class SourceWithPoliciesFluxObjectFactory implements Supplier<FluxSink<CoreEvent>> {
 
