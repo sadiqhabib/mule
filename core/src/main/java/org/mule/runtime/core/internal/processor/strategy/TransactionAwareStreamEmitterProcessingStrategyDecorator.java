@@ -61,6 +61,13 @@ public class TransactionAwareStreamEmitterProcessingStrategyDecorator extends Pr
   }
 
   @Override
+  public ReactiveProcessor onPipeline(ReactiveProcessor pipeline, ScheduledExecutorService scheduler) {
+    return !LAZY_TX_CHECK && isTransactionActive()
+        ? BLOCKING_PROCESSING_STRATEGY_INSTANCE.onPipeline(pipeline, scheduler)
+        : delegate.onPipeline(pipeline, scheduler);
+  }
+
+  @Override
   public ReactiveProcessor onProcessor(ReactiveProcessor processor) {
     if (LAZY_TX_CHECK) {
       // If there is a tx active, force the processing to the main thread right after the processor.

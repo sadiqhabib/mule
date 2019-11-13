@@ -75,6 +75,5 @@ public class BlockingProcessingStrategyFactory implements ProcessingStrategyFact
                 }
               })));
     }
-
   }
 }

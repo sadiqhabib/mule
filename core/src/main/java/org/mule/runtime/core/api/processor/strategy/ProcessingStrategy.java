@@ -6,7 +6,10 @@
  */
 package org.mule.runtime.core.api.processor.strategy;
 
+import static org.mule.runtime.core.internal.util.rx.ImmediateScheduler.IMMEDIATE_SCHEDULER;
+
 import org.mule.api.annotation.NoImplement;
+import org.mule.runtime.api.scheduler.Scheduler;
 import org.mule.runtime.core.api.construct.BackPressureReason;
 import org.mule.runtime.core.api.construct.FlowConstruct;
 import org.mule.runtime.core.api.construct.Pipeline;
@@ -16,6 +19,7 @@ import org.mule.runtime.core.api.processor.ReactiveProcessor;
 import org.mule.runtime.core.api.processor.Sink;
 
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Determines how a list of message processors should processed.
@@ -40,7 +44,15 @@ public interface ProcessingStrategy {
    * @return enriched pipeline function/
    */
   default ReactiveProcessor onPipeline(ReactiveProcessor pipeline) {
+    return onPipeline(pipeline, getDefaultPipelineScheduler());
+  }
+
+  default ReactiveProcessor onPipeline(ReactiveProcessor pipeline, ScheduledExecutorService scheduler) {
     return pipeline;
+  }
+
+  default Scheduler getDefaultPipelineScheduler() {
+    return IMMEDIATE_SCHEDULER;
   }
 
   /**

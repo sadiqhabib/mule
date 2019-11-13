@@ -35,6 +35,7 @@ import org.mule.runtime.api.lifecycle.LifecycleException;
 import org.mule.runtime.api.message.ErrorType;
 import org.mule.runtime.api.notification.NotificationDispatcher;
 import org.mule.runtime.api.notification.PipelineMessageNotification;
+import org.mule.runtime.api.scheduler.SchedulerService;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.config.MuleConfiguration;
 import org.mule.runtime.core.api.config.i18n.CoreMessages;
@@ -57,6 +58,7 @@ import org.mule.runtime.core.internal.context.MuleContextWithRegistry;
 import org.mule.runtime.core.internal.exception.MessagingException;
 import org.mule.runtime.core.internal.message.ErrorBuilder;
 import org.mule.runtime.core.internal.processor.strategy.DirectProcessingStrategyFactory;
+import org.mule.runtime.core.internal.util.rx.ConditionalExecutorServiceDecorator;
 import org.mule.runtime.core.privileged.event.BaseEventContext;
 import org.mule.runtime.core.privileged.processor.MessageProcessorBuilder;
 import org.mule.runtime.core.privileged.processor.chain.DefaultMessageProcessorChainBuilder;
@@ -69,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -103,6 +106,8 @@ public abstract class AbstractPipeline extends AbstractFlowConstruct implements 
   private final ComponentInitialStateManager componentInitialStateManager;
   private final BackPressureStrategySelector backpressureStrategySelector;
   private final ErrorType FLOW_BACKPRESSURE_ERROR_TYPE;
+
+  private SchedulerService schedulerService;
 
   public AbstractPipeline(String name, MuleContext muleContext, MessageSource source, List<Processor> processors,
                           Optional<FlowExceptionHandler> exceptionListener,
@@ -195,6 +200,8 @@ public abstract class AbstractPipeline extends AbstractFlowConstruct implements 
 
   @Override
   protected void doInitialise() throws MuleException {
+    schedulerService = muleContext.getSchedulerService();
+
     final Map<BackPressureReason, FlowBackPressureException> backPressureExceptions = new HashMap<>();
 
     backPressureExceptions.put(EVENTS_ACCUMULATED,
@@ -282,7 +289,7 @@ public abstract class AbstractPipeline extends AbstractFlowConstruct implements 
   /**
    * Builds an error event and communicates it through the {@link BaseEventContext}
    *
-   * @param event the event for which an error was caused
+   * @param event            the event for which an error was caused
    * @param wrappedException the wrapped inside a {@link FlowBackPressureException} cause exception
    */
   private void notifyBackpressureException(CoreEvent event, FlowBackPressureException wrappedException) {
@@ -297,9 +304,12 @@ public abstract class AbstractPipeline extends AbstractFlowConstruct implements 
   }
 
   protected ReactiveProcessor processFlowFunction() {
+    ScheduledExecutorService scheduler = new ConditionalExecutorServiceDecorator(processingStrategy.getDefaultPipelineScheduler(),
+                                                                                 sch -> schedulerService
+                                                                                     .isCurrentThreadRuntimeOwned());
     return stream -> from(stream)
         .doOnNext(beforeProcessors())
-        .transform(processingStrategy.onPipeline(pipeline))
+        .transform(processingStrategy.onPipeline(pipeline, scheduler))
         .doOnNext(afterProcessors())
         .doOnError(throwable -> {
           if (isCompleteSignalRejectedExecutionException(throwable)) {

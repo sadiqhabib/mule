@@ -78,9 +78,7 @@ public class TransactionAwareProactorStreamEmitterProcessingStrategyTestCase
                                                                                                                     MAX_VALUE,
                                                                                                                     MAX_VALUE,
                                                                                                                     false,
-                                                                                                                    false,
-                                                                                                                    muleContext
-                                                                                                                        .getSchedulerService()));
+                                                                                                                    false));
   }
 
   @Override
@@ -96,9 +94,7 @@ public class TransactionAwareProactorStreamEmitterProcessingStrategyTestCase
                                                                                                                     maxConcurrency,
                                                                                                                     maxConcurrency,
                                                                                                                     true,
-                                                                                                                    false,
-                                                                                                                    muleContext
-                                                                                                                        .getSchedulerService()));
+                                                                                                                    false));
   }
 
   @Override

@@ -14,6 +14,7 @@ import org.mule.runtime.api.exception.MuleException;
 import org.mule.runtime.api.lifecycle.Disposable;
 import org.mule.runtime.api.lifecycle.InitialisationException;
 import org.mule.runtime.api.lifecycle.Lifecycle;
+import org.mule.runtime.api.scheduler.Scheduler;
 import org.mule.runtime.core.api.construct.BackPressureReason;
 import org.mule.runtime.core.api.construct.FlowConstruct;
 import org.mule.runtime.core.api.event.CoreEvent;
@@ -22,6 +23,7 @@ import org.mule.runtime.core.api.processor.Sink;
 import org.mule.runtime.core.api.processor.strategy.ProcessingStrategy;
 
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Base class for {@link ProcessingStrategy} decorators.
@@ -47,6 +49,16 @@ public abstract class ProcessingStrategyDecorator implements ProcessingStrategy,
   @Override
   public ReactiveProcessor onPipeline(ReactiveProcessor pipeline) {
     return delegate.onPipeline(pipeline);
+  }
+
+  @Override
+  public ReactiveProcessor onPipeline(ReactiveProcessor pipeline, ScheduledExecutorService scheduler) {
+    return delegate.onPipeline(pipeline, scheduler);
+  }
+
+  @Override
+  public Scheduler getDefaultPipelineScheduler() {
+    return delegate.getDefaultPipelineScheduler();
   }
 
   @Override

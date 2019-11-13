@@ -60,6 +60,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -67,18 +68,16 @@ import java.util.function.Function;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.context.Context;
@@ -169,6 +168,13 @@ public class FlowRefFactoryBean extends AbstractComponentFactory<Processor> impl
 
                 @Override
                 public ReactiveProcessor onPipeline(ReactiveProcessor pipeline) {
+                  // Do not make any change in `onPipeline`, so it emulates the behavior of copy/pasting the content of the
+                  // sub-flow into the caller flow, without applying any additional logic.
+                  return pipeline;
+                }
+
+                @Override
+                public ReactiveProcessor onPipeline(ReactiveProcessor pipeline, ScheduledExecutorService scheduler) {
                   // Do not make any change in `onPipeline`, so it emulates the behavior of copy/pasting the content of the
                   // sub-flow into the caller flow, without applying any additional logic.
                   return pipeline;
