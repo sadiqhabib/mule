@@ -8,6 +8,7 @@ package org.mule.runtime.core.internal.event;
 
 
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
@@ -17,7 +18,6 @@ import static org.mule.runtime.api.el.BindingContextUtils.addEventBindings;
 import static org.mule.runtime.core.api.config.i18n.CoreMessages.cannotReadPayloadAsBytes;
 import static org.mule.runtime.core.api.config.i18n.CoreMessages.cannotReadPayloadAsString;
 import static org.mule.runtime.core.api.config.i18n.CoreMessages.objectIsNull;
-import static org.mule.runtime.core.api.util.CaseInsensitiveHashMap.emptyCaseInsensitiveMap;
 import static org.mule.runtime.core.api.util.SystemUtils.getDefaultEncoding;
 import static org.mule.runtime.core.internal.util.message.ItemSequenceInfoUtils.fromGroupCorrelation;
 import static org.mule.runtime.core.internal.util.message.ItemSequenceInfoUtils.toGroupCorrelation;
@@ -65,8 +65,8 @@ public class DefaultEventBuilder implements InternalEvent.Builder {
   private BaseEventContext context;
   private Function<EventContext, Message> messageFactory;
   private boolean varsModified = false;
-  private CaseInsensitiveHashMap<String, TypedValue<?>> flowVariables;
-  private CaseInsensitiveHashMap<String, TypedValue<?>> originalVars;
+  private Map<String, TypedValue<?>> flowVariables;
+  private Map<String, TypedValue<?>> originalVars;
   private Map<String, Object> internalParameters;
   private Error error;
   private Optional<ItemSequenceInfo> itemSequenceInfo = empty();
@@ -81,7 +81,7 @@ public class DefaultEventBuilder implements InternalEvent.Builder {
   public DefaultEventBuilder(BaseEventContext messageContext) {
     this.context = messageContext;
     this.session = new DefaultMuleSession();
-    this.originalVars = emptyCaseInsensitiveMap();
+    this.originalVars = emptyMap();
     this.internalParameters = new HashMap<>(INTERNAL_PARAMETERS_INITIAL_CAPACITY);
     internalParametersInitialized = true;
   }
@@ -97,7 +97,7 @@ public class DefaultEventBuilder implements InternalEvent.Builder {
     this.error = event.getError().orElse(null);
     this.notificationsEnabled = event.isNotificationsEnabled();
 
-    this.originalVars = (CaseInsensitiveHashMap<String, TypedValue<?>>) event.getVariables();
+    this.originalVars = event.getVariables();
     this.internalParameters = (Map<String, Object>) event.getInternalParameters();
   }
 
@@ -135,15 +135,15 @@ public class DefaultEventBuilder implements InternalEvent.Builder {
 
   @Override
   public DefaultEventBuilder variablesTyped(Map<String, TypedValue<?>> variables) {
-    if (!(variables instanceof CaseInsensitiveHashMap)) {
-      return variables(variables);
-    }
+    //if (!(variables instanceof CaseInsensitiveHashMap)) {
+    //  return variables(variables);
+    //}
 
     if (varsModified) {
       this.flowVariables.clear();
     }
 
-    originalVars = (CaseInsensitiveHashMap<String, TypedValue<?>>) variables;
+    originalVars = variables;
     this.varsModified = false;
     this.modified = true;
 
@@ -185,7 +185,7 @@ public class DefaultEventBuilder implements InternalEvent.Builder {
     if ((flowVariables != null && !this.flowVariables.isEmpty()) || !this.originalVars.isEmpty()) {
       this.varsModified = true;
       this.modified = true;
-      flowVariables = new CaseInsensitiveHashMap<>();
+      flowVariables = new HashMap<>();
     }
     return this;
   }
@@ -339,7 +339,7 @@ public class DefaultEventBuilder implements InternalEvent.Builder {
 
     private final boolean notificationsEnabled;
 
-    private final CaseInsensitiveHashMap<String, TypedValue<?>> variables;
+    private final Map<String, TypedValue<?>> variables;
 
     private final String legacyCorrelationId;
     private final Error error;
@@ -365,7 +365,7 @@ public class DefaultEventBuilder implements InternalEvent.Builder {
 
     // Use this constructor from the builder
     private InternalEventImplementation(BaseEventContext context, Message message,
-                                        CaseInsensitiveHashMap<String, TypedValue<?>> variables,
+                                        Map<String, TypedValue<?>> variables,
                                         Map<String, ?> internalParameters, MuleSession session, SecurityContext securityContext,
                                         Optional<ItemSequenceInfo> itemSequenceInfo,
                                         Error error,
@@ -374,7 +374,7 @@ public class DefaultEventBuilder implements InternalEvent.Builder {
       this.session = session;
       this.securityContext = securityContext;
       this.message = message;
-      this.variables = variables.toImmutableCaseInsensitiveMap();
+      this.variables = unmodifiableMap(variables);
       this.internalParameters = internalParameters;
 
       this.itemSequenceInfo = itemSequenceInfo.orElse(null);
