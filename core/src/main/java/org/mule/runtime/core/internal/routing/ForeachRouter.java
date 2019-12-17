@@ -97,11 +97,11 @@ class ForeachRouter {
             // Inject it into the inner flux
             innerRecorder.next(responseEvent);
           } catch (Exception e) {
-            // Delete foreach context
-            this.eventWithCurrentContextDeleted(event);
-            // Wrap any exception that occurs during split in a MessagingException. This is required as the
+            // Delete foreach context and
+            // wrap any exception that occurs during split in a MessagingException. This is required as the
             // automatic wrapping is only applied when the signal is an Event.
-            downstreamRecorder.next(left(new MessagingException(responseEvent, e, owner)));
+            downstreamRecorder.next(left(new MessagingException(this.eventWithCurrentContextDeleted(responseEvent), e, owner)));
+            completeRouterIfNecessary();
           }
         })
         .doOnComplete(() -> {
@@ -119,7 +119,7 @@ class ForeachRouter {
 
           Iterator<TypedValue<?>> iterator = foreachContext.getIterator();
           if (!iterator.hasNext() && foreachContext.getElementNumber().get() == 0) {
-            downstreamRecorder.next(right(event));
+           downstreamRecorder.next(right(Throwable.class, event));
             completeRouterIfNecessary();
           }
 
@@ -146,12 +146,12 @@ class ForeachRouter {
             }
           } catch (Exception e) {
             // Delete foreach context
-            this.eventWithCurrentContextDeleted(evt);
-            downstreamRecorder.next(left(new MessagingException(evt, e, owner)));
+            downstreamRecorder.next(left(new MessagingException(this.eventWithCurrentContextDeleted(evt), e, owner)));
             completeRouterIfNecessary();
           }
-        }).onErrorContinue((e, o) -> {
-          this.eventWithCurrentContextDeleted(((MessagingException) e).getEvent());
+        }).onErrorContinue(MessagingException.class, (e, o) -> {
+          CoreEvent event = this.eventWithCurrentContextDeleted(((MessagingException) e).getEvent());
+          ((MessagingException) e).setProcessedEvent(event);
           downstreamRecorder.next(left(e));
           completeRouterIfNecessary();
         });
