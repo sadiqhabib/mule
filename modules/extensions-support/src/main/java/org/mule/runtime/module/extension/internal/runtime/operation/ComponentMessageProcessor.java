@@ -242,7 +242,7 @@ public abstract class ComponentMessageProcessor<T extends ComponentModel> extend
     }
   }
 
-  private void onEvent(CoreEvent event, ExecutorCallback executorCallback) {
+  protected void onEvent(CoreEvent event, ExecutorCallback executorCallback) {
     try {
 
       final Optional<ConfigurationInstance> configuration = resolveConfiguration(event);
@@ -349,7 +349,7 @@ public abstract class ComponentMessageProcessor<T extends ComponentModel> extend
     executionMediator.execute(componentExecutor, operationContext, callback);
   }
 
-  protected ExecutionContextAdapter<T> createExecutionContext(Optional<ConfigurationInstance> configuration,
+  private ExecutionContextAdapter<T> createExecutionContext(Optional<ConfigurationInstance> configuration,
                                                             Map<String, Object> resolvedParameters,
                                                             CoreEvent event, Scheduler currentScheduler) {
 
