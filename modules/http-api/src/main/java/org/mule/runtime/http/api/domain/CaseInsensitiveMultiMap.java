@@ -14,7 +14,6 @@ import org.mule.api.annotation.NoExtend;
 import org.mule.runtime.api.el.DataTypeAware;
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.util.CaseInsensitiveMapWrapper;
-import org.mule.runtime.api.util.LazyValue;
 import org.mule.runtime.api.util.MultiMap;
 
 import java.util.LinkedHashMap;
@@ -32,11 +31,11 @@ public class CaseInsensitiveMultiMap extends MultiMap<String, String> implements
 
   private static final CaseInsensitiveMultiMap EMPTY_MAP = new CaseInsensitiveMultiMap().toImmutableMultiMap();
 
-  private final LazyValue<DataType> dataType = new LazyValue<>(() -> DataType.builder()
+  private static final DataType dataType = DataType.builder()
       .mapType(CaseInsensitiveMultiMap.class)
       .keyType(String.class)
       .valueType(String.class)
-      .build());
+      .build();
 
   /**
    * Returns an empty case-insensitive-multi-map (immutable). This map is serializable.
@@ -112,6 +111,22 @@ public class CaseInsensitiveMultiMap extends MultiMap<String, String> implements
     }
   }
 
+  public static CaseInsensitiveMultiMap fromMultiMap(MultiMap<String, String> multiMap) {
+    if (multiMap != null) {
+      if (multiMap instanceof CaseInsensitiveMultiMap) {
+        return (CaseInsensitiveMultiMap) multiMap;
+      } else {
+        return new CaseInsensitiveMultiMap(multiMap);
+      }
+    } else {
+      return emptyCaseInsensitiveMultiMap();
+    }
+  }
+
+  public static MultiMap<String, String> toMultiMap(CaseInsensitiveMultiMap multiMap) {
+    return new MultiMap<>(multiMap);
+  }
+
   @Override
   public CaseInsensitiveMultiMap toImmutableMultiMap() {
     if (this.isEmpty() && emptyCaseInsensitiveMultiMap() != null) {
@@ -138,6 +153,6 @@ public class CaseInsensitiveMultiMap extends MultiMap<String, String> implements
 
   @Override
   public DataType getDataType() {
-    return dataType.get();
+    return dataType;
   }
 }
