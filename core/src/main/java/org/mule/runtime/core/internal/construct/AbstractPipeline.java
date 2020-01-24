@@ -6,6 +6,7 @@
  */
 package org.mule.runtime.core.internal.construct;
 
+import static java.lang.Runtime.getRuntime;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableList;
@@ -456,8 +457,10 @@ public abstract class AbstractPipeline extends AbstractFlowConstruct implements 
       return;
     }
 
-    completionCallbackScheduler = schedulerService.ioScheduler(muleContext.getSchedulerBaseConfig().withMaxConcurrentTasks(1)
-        .withName(getName() + ".flux.completionCallback"));
+    completionCallbackScheduler = schedulerService
+        .ioScheduler(muleContext.getSchedulerBaseConfig()
+            .withMaxConcurrentTasks(getRuntime().availableProcessors() * 2)
+            .withName(getName() + ".flux.completionCallback"));
 
     canProcessMessage = true;
     if (getMuleContext().isStarted()) {
