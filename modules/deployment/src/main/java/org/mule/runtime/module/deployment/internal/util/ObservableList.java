@@ -58,7 +58,7 @@ public class ObservableList<E> implements List<E> {
     boolean success = delegate.addAll(c);
     if (success && c != null) {
       List<E> values = new ArrayList<E>();
-      for (E element : values) {
+      for (E element : c) {
         values.add(element);
       }
 
